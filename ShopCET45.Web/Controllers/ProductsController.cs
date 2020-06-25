@@ -2,21 +2,22 @@
 using Microsoft.EntityFrameworkCore;
 using ShopCET45.Web.Data;
 using ShopCET45.Web.Data.Entities;
-using System.Runtime.InteropServices;
-using System.Threading;
+using ShopCET45.Web.Helpers;
 using System.Threading.Tasks;
 
 namespace ShopCET45.Web.Controllers
 {
     public class ProductsController : Controller
     {
-        
-        private readonly IProductRepository _productRepository;
 
-        public ProductsController(IProductRepository productRepository)
+        private readonly IProductRepository _productRepository;
+        private readonly IUserHelper _userHelper;
+
+        public ProductsController(IProductRepository productRepository, IUserHelper userHelper)
         {
-           
+
             _productRepository = productRepository;
+            _userHelper = userHelper;
         }
 
         // GET: Products
@@ -58,6 +59,8 @@ namespace ShopCET45.Web.Controllers
         {
             if (ModelState.IsValid)
             {
+                //TODO: Change for the logged user
+                product.User = await _userHelper.GetUserByEmailAsync("rafaelsantos@portugalmail.pt");
                 await _productRepository.CreateAsync(product);
                 return RedirectToAction(nameof(Index));
             }
@@ -92,11 +95,13 @@ namespace ShopCET45.Web.Controllers
             {
                 try
                 {
+                    //TODO: Change for the logged user
+                    product.User = await _userHelper.GetUserByEmailAsync("rafaelsantos@portugalmail.pt");
                     await _productRepository.UpdateAsync(product);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (! await _productRepository.ExistAsync(product.Id))
+                    if (!await _productRepository.ExistAsync(product.Id))
                     {
                         return NotFound();
                     }

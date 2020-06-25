@@ -21,6 +21,7 @@ namespace ShopCET45.Web.Data
             await SaveAllAsync();
         }
 
+
         private async Task<bool> SaveAllAsync()
         {
             return await _context.SaveChangesAsync() > 0;
