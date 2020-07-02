@@ -6,6 +6,7 @@ using ShopCET45.Web.Helpers;
 using ShopCET45.Web.Models;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ShopCET45.Web.Controllers
@@ -26,7 +27,7 @@ namespace ShopCET45.Web.Controllers
         // GET: Products
         public IActionResult Index()
         {
-            return View(_productRepository.GetAll());
+            return View(_productRepository.GetAll().OrderBy(p => p.Name));
         }
 
 
