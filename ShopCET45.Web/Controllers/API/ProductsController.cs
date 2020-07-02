@@ -7,7 +7,9 @@ namespace ShopCET45.Web.Controllers.API
     [ApiController]
     public class ProductsController : Controller
     {
+
         private readonly IProductRepository _productRepository;
+
 
         public ProductsController(IProductRepository productRepository)
         {
@@ -20,6 +22,5 @@ namespace ShopCET45.Web.Controllers.API
         {
             return Ok(_productRepository.GetAll());
         }
-
     }
 }
