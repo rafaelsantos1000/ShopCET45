@@ -1,16 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShopCET45.Web.Data;
-using ShopCET45.Web.Data.Entities;
 using ShopCET45.Web.Helpers;
 using ShopCET45.Web.Models;
-using System;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace ShopCET45.Web.Controllers
 {
+    [Authorize]
     public class ProductsController : Controller
     {
 
@@ -62,7 +61,7 @@ namespace ShopCET45.Web.Controllers
             return View();
         }
 
-
+  
         // POST: Products/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -74,7 +73,7 @@ namespace ShopCET45.Web.Controllers
             {
                 var path = string.Empty;
 
-                if(model.ImageFile != null)
+                if (model.ImageFile != null)
                 {
 
                     path = await _imageHelper.UploadImageAsync(model.ImageFile, "Products");
@@ -84,7 +83,7 @@ namespace ShopCET45.Web.Controllers
 
 
                 //TODO: Change for the logged user
-                product.User = await _userHelper.GetUserByEmailAsync("rafaelsantos@portugalmail.pt");
+                product.User = await _userHelper.GetUserByEmailAsync(this.User.Identity.Name);
                 await _productRepository.CreateAsync(product);
                 return RedirectToAction(nameof(Index));
             }
@@ -142,6 +141,7 @@ namespace ShopCET45.Web.Controllers
             };
         }*/
 
+
         // POST: Products/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -165,7 +165,7 @@ namespace ShopCET45.Web.Controllers
                     var product = _converterHelper.ToProduct(model, path, false);
 
                     //TODO: Change for the logged user
-                    product.User = await _userHelper.GetUserByEmailAsync("rafaelsantos@portugalmail.pt");
+                    product.User = await _userHelper.GetUserByEmailAsync(this.User.Identity.Name);
                     await _productRepository.UpdateAsync(product);
                 }
                 catch (DbUpdateConcurrencyException)

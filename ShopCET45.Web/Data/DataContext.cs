@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ShopCET45.Web.Data.Entities;
+using System.Linq;
 
 namespace ShopCET45.Web.Data
 {
@@ -14,6 +15,31 @@ namespace ShopCET45.Web.Data
 
         public DataContext(DbContextOptions<DataContext> options) : base(options)
         {
+        }
+
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+
+            modelBuilder.Entity<Product>()
+                .Property(p => p.Price)
+                .HasColumnType("decimal(18,2)");
+
+
+
+            //Cascading Delete Rule
+            var cascadeFKs = modelBuilder.Model
+                .GetEntityTypes()
+                .SelectMany(t => t.GetForeignKeys())
+                .Where(fk => !fk.IsOwnership && fk.DeleteBehavior == DeleteBehavior.Cascade);
+            foreach(var fk in cascadeFKs)
+            {
+                fk.DeleteBehavior = DeleteBehavior.Restrict; 
+            }
+
+
+
+            base.OnModelCreating(modelBuilder);
         }
 
     }
