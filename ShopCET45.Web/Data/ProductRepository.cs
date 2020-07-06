@@ -13,6 +13,7 @@ namespace ShopCET45.Web.Data
             _context = context;
         }
 
+
         public IQueryable GetAllWithUsers()
         {
             return _context.Products.Include(p => p.User);
