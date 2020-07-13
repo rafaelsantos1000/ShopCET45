@@ -8,7 +8,9 @@ namespace ShopCET45.Web.Data.Entities
         public string FirstName { get; set; }
 
 
+
         public string LastName { get; set; }
+
 
 
         [Display(Name = "Full Name")]
