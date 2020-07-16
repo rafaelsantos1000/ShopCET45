@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using ShopCET45.Web.Data.Repositories;
 using ShopCET45.Web.Models;
+using System;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 
 namespace ShopCET45.Web.Controllers
@@ -106,5 +108,43 @@ namespace ShopCET45.Web.Controllers
 
             return this.RedirectToAction("Create");
         }
-    }
+
+
+        public async Task<IActionResult> Deliver(int? id)
+        {
+            if(id == null)
+            {
+              return NotFound();
+            }
+
+            var order = await _orderRepository.GetOrdersAsync(id.Value);
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+
+            var model = new DeliverViewModel
+            {
+                Id = order.Id,
+                DeliveryDate = DateTime.Today
+            };
+
+            return View(model);
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> Deliver(DeliverViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                await _orderRepository.DeliverOrder(model);
+                return RedirectToAction("Index");
+            }
+
+            return View();
+        }
+
+      }
 }

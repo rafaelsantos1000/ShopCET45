@@ -178,5 +178,25 @@ namespace ShopCET45.Web.Data.Repositories
             await _context.SaveChangesAsync();
             return true;
         }
+
+
+        public async Task DeliverOrder(DeliverViewModel model)
+        {
+            var order = await _context.Orders.FindAsync(model.Id);
+            if(order == null)
+            {
+                return;
+            }
+
+            order.DeliveryDate = model.DeliveryDate;
+            _context.Orders.Update(order);
+            await _context.SaveChangesAsync();
+        }
+
+
+        public async Task<Order> GetOrdersAsync(int id)
+        {
+            return await _context.Orders.FindAsync(id);
+        }
     }
 }
