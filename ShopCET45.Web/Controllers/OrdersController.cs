@@ -97,7 +97,6 @@ namespace ShopCET45.Web.Controllers
         }
 
 
-
         public async Task<IActionResult> ConfirmOrder()
         {
             var response = await _orderRepository.ConfirmOrderAsync(this.User.Identity.Name);
