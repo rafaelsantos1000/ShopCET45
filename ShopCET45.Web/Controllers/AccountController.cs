@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using ShopCET45.Web.Data.Entities;
+using ShopCET45.Web.Data.Repositories;
 using ShopCET45.Web.Helpers;
 using ShopCET45.Web.Models;
 using System;
@@ -19,15 +20,18 @@ namespace ShopCET45.Web.Controllers
     {
         private readonly IUserHelper _userHelper;
         private readonly IMailHelper _mailHelper;
+        private readonly ICountryRepository _countryRepository;
         private readonly IConfiguration _configuration;
 
         public AccountController(
             IUserHelper userHelper,
             IMailHelper mailHelper,
+            ICountryRepository countryRepository,
             IConfiguration configuration)
         {
             _userHelper = userHelper;
             _mailHelper = mailHelper;
+            _countryRepository = countryRepository;
             _configuration = configuration;
         }
 
@@ -78,8 +82,16 @@ namespace ShopCET45.Web.Controllers
 
         public IActionResult Register()
         {
-            return this.View();
+            var model = new RegisterNewUserViewModel
+            {
+                Countries = _countryRepository.GetComboCountries(),
+                Cities = _countryRepository.GetComboCities(0),
+            } ;
+
+
+            return this.View(model);
         }
+
 
 
         [HttpPost]
@@ -90,13 +102,22 @@ namespace ShopCET45.Web.Controllers
                 var user = await _userHelper.GetUserByEmailAsync(model.Username);
                 if (user == null)
                 {
+
+                    var city = await _countryRepository.GetCityAsync(model.CityId);
+
+
                     user = new User
                     {
                         FirstName = model.FirstName,
                         LastName = model.LastName,
                         Email = model.Username,
-                        UserName = model.Username
+                        UserName = model.Username,
+                        Address = model.Address,
+                        PhoneNumber = model.PhoneNumber,
+                        CityId = model.CityId,
+                        City = city
                     };
+
 
                     var result = await _userHelper.AddUserAsync(user, model.Password);
                     if (result != IdentityResult.Success)
@@ -156,13 +177,31 @@ namespace ShopCET45.Web.Controllers
         {
             var user = await _userHelper.GetUserByEmailAsync(this.User.Identity.Name);
             var model = new ChangeUserViewModel();
+
             if (user != null)
             {
                 model.FirstName = user.FirstName;
                 model.LastName = user.LastName;
+                model.Address = user.Address;
+                model.PhoneNumber = user.PhoneNumber;
+
+                var city = await _countryRepository.GetCityAsync(user.CityId);
+                if (city != null)
+                {
+                    var country = await _countryRepository.GetCountryAsync(city);
+                    if (country != null)
+                    {
+                        model.CountryId = country.Id;
+                        model.Cities = _countryRepository.GetComboCities(country.Id);
+                        model.Countries = _countryRepository.GetComboCountries();
+                        model.CityId = user.CityId;
+                    }
+                }
             }
 
-            return View(model);
+            model.Cities = _countryRepository.GetComboCities(model.CountryId);
+            model.Countries = _countryRepository.GetComboCountries();
+            return this.View(model);
         }
 
 
@@ -170,31 +209,39 @@ namespace ShopCET45.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> ChangeUser(ChangeUserViewModel model)
         {
-            if (ModelState.IsValid)
+            if (this.ModelState.IsValid)
             {
                 var user = await _userHelper.GetUserByEmailAsync(this.User.Identity.Name);
                 if (user != null)
                 {
+                    var city = await _countryRepository.GetCityAsync(model.CityId);
+
                     user.FirstName = model.FirstName;
                     user.LastName = model.LastName;
-                    var response = await _userHelper.UpdateUserAsync(user);
-                    if (response.Succeeded)
+                    user.Address = model.Address;
+                    user.PhoneNumber = model.PhoneNumber;
+                    user.CityId = model.CityId;
+                    user.City = city;
+
+                    var respose = await _userHelper.UpdateUserAsync(user);
+                    if (respose.Succeeded)
                     {
-                        ViewBag.UserMessage = "User update!";
+                        this.ViewBag.UserMessage = "User updated!";
                     }
                     else
                     {
-                        ModelState.AddModelError(string.Empty, response.Errors.FirstOrDefault().Description);
+                        this.ModelState.AddModelError(string.Empty, respose.Errors.FirstOrDefault().Description);
                     }
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "User not found!");
+                    this.ModelState.AddModelError(string.Empty, "User no found.");
                 }
             }
 
-            return View(model);
+            return this.View(model);
         }
+
 
 
         public IActionResult ChangePassword()
@@ -344,6 +391,13 @@ namespace ShopCET45.Web.Controllers
         public IActionResult NotAuthorized()
         {
             return View();
+        }
+
+
+        public async Task<JsonResult> GetCitiesAsync(int countryId)
+        {
+            var country = await _countryRepository.GetCountryWithCitiesAsync(countryId);
+            return this.Json(country.Cities.OrderBy(c => c.Name));
         }
     }
 }
