@@ -13,6 +13,9 @@ namespace ShopCET45.Web.Data
         public DbSet<Country> Countries { get; set; }
 
 
+        public DbSet<City> Cities { get; set; }
+
+
         public DbSet<Order> Orders { get; set; }
 
 
