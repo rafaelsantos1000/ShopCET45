@@ -33,6 +33,11 @@ namespace ShopCET45.Web.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
+            modelBuilder.Entity<Country>()
+                .HasIndex(c => c.Name)
+                .IsUnique();
+
+
             modelBuilder.Entity<Product>()
                 .Property(p => p.Price)
                 .HasColumnType("decimal(18,2)");
